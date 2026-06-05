@@ -1,16 +1,26 @@
 # naming prefix biar rapi
 locals {
   name = "${var.project_name}-${var.environment}"
+
+  common_tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
 }
 
 # ECS CLUSTER
 resource "aws_ecs_cluster" "this" {
   name = "${local.name}-cluster"
+
+  tags = local.common_tags
 }
 
 # LOG GROUP
 resource "aws_cloudwatch_log_group" "this" {
   name = "/ecs/${local.name}"
+
+  tags = local.common_tags
 }
 
 # IAM EXECUTION ROLE
@@ -27,6 +37,8 @@ resource "aws_iam_role" "exec" {
       Action = "sts:AssumeRole"
     }]
   })
+
+  tags = local.common_tags
 }
 
 # policy wajib ECS
@@ -53,6 +65,8 @@ resource "aws_security_group" "this" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = local.common_tags
 }
 
 # TASK DEFINITION
@@ -86,6 +100,8 @@ resource "aws_ecs_task_definition" "this" {
       }
     }
   }])
+
+  tags = local.common_tags
 }
 
 # ECS SERVICE
@@ -113,4 +129,12 @@ resource "aws_ecs_service" "this" {
       container_port   = var.container_port
     }
   }
+
+  # Abaikan perubahan task_definition agar deployment via CodePipeline
+  # tidak di-override saat terraform apply dijalankan ulang
+  lifecycle {
+    ignore_changes = [task_definition]
+  }
+
+  tags = local.common_tags
 }

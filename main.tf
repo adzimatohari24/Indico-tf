@@ -20,6 +20,7 @@ module "ecs" {
 
   project_name = var.project_name
   environment  = var.environment
+  aws_region   = var.aws_region  # fix: pass region agar awslogs-region sesuai
 
   vpc_id     = var.vpc_id
   subnet_ids = var.subnet_ids
@@ -32,6 +33,8 @@ module "ecs" {
 
   target_group_arn = module.alb.target_group_arn
 
+  # fix: pastikan ALB (listener) sudah siap sebelum ECS service naik
+  depends_on = [module.alb]
 }
 
 # CODEBUILD MODULE

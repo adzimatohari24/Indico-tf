@@ -1,7 +1,9 @@
 output "project_name" {
-  value = aws_codebuild_project.this.name
+  description = "Nama CodeBuild project yang dibuat"
+  value       = aws_codebuild_project.this.name
 }
 
 output "project_arn" {
-  value = aws_codebuild_project.this.arn
+  description = "ARN CodeBuild project yang dibuat"
+  value       = aws_codebuild_project.this.arn
 }

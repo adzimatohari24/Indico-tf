@@ -1,6 +1,12 @@
 # Naming
 locals {
   name = "${var.project_name}-${var.environment}"
+
+  common_tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
 }
 
 # IAM ROLE FOR CODEBUILD
@@ -18,9 +24,11 @@ resource "aws_iam_role" "codebuild" {
       Action = "sts:AssumeRole"
     }]
   })
+
+  tags = local.common_tags
 }
 
-# Attach policy (logs + S3 basic)
+# IAM POLICY - scope dibatasi ke resource yang relevan
 resource "aws_iam_role_policy" "codebuild" {
   role = aws_iam_role.codebuild.id
 
@@ -30,16 +38,20 @@ resource "aws_iam_role_policy" "codebuild" {
       {
         Effect = "Allow"
         Action = [
-          "logs:*"
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
         ]
-        Resource = "*"
+        Resource = "arn:aws:logs:*:*:log-group:/codebuild/${local.name}:*"
       },
       {
         Effect = "Allow"
         Action = [
-          "s3:*"
+          "s3:GetObject",
+          "s3:GetObjectVersion",
+          "s3:PutObject"
         ]
-        Resource = "*"
+        Resource = "arn:aws:s3:::${var.project_name}-${var.environment}-artifact-bucket/*"
       }
     ]
   })
@@ -48,12 +60,14 @@ resource "aws_iam_role_policy" "codebuild" {
 # CLOUDWATCH LOG GROUP
 resource "aws_cloudwatch_log_group" "codebuild" {
   name = "/codebuild/${local.name}"
+
+  tags = local.common_tags
 }
 
 # CODEBUILD PROJECT
 resource "aws_codebuild_project" "this" {
   name         = "${local.name}-cb"
-  description  = "CodeBuild project"
+  description  = "CodeBuild project for ${local.name}"
   service_role = aws_iam_role.codebuild.arn
 
   build_timeout = 30
@@ -65,9 +79,10 @@ resource "aws_codebuild_project" "this" {
 
   # BUILD ENVIRONMENT
   environment {
-    compute_type = var.compute_type
-    image        = var.image
-    type         = "LINUX_CONTAINER"
+    compute_type    = var.compute_type
+    image           = var.image
+    type            = "LINUX_CONTAINER"
+    privileged_mode = var.privileged_mode
 
     # Inject environment variables
     dynamic "environment_variable" {
@@ -79,7 +94,7 @@ resource "aws_codebuild_project" "this" {
     }
   }
 
-  # SOURCE (GitHub / GitLab)
+  # SOURCE (GitHub)
   source {
     type      = "GITHUB"
     location  = var.repo_url
@@ -92,4 +107,6 @@ resource "aws_codebuild_project" "this" {
       group_name = aws_cloudwatch_log_group.codebuild.name
     }
   }
+
+  tags = local.common_tags
 }
