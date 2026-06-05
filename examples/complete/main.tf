@@ -14,12 +14,29 @@ provider "aws" {
   region = var.aws_region
 }
 
-# ECS MODULE (existing)
-module "ecs" {
-  source = "./modules/ecs"
+# ALB MODULE
+module "alb" {
+  source = "../../modules/alb"
 
   project_name = var.project_name
   environment  = var.environment
+
+  vpc_id     = var.vpc_id
+  subnet_ids = var.subnet_ids
+
+  container_port = var.container_port
+
+  # OPTIONAL SSL
+  # certificate_arn = var.certificate_arn
+}
+
+# ECS MODULE
+module "ecs" {
+  source = "../../modules/ecs"
+
+  project_name = var.project_name
+  environment  = var.environment
+  aws_region   = var.aws_region
 
   vpc_id     = var.vpc_id
   subnet_ids = var.subnet_ids
@@ -32,11 +49,13 @@ module "ecs" {
 
   target_group_arn = module.alb.target_group_arn
 
+  # pastikan ALB siap sebelum ECS service naik
+  depends_on = [module.alb]
 }
 
 # CODEBUILD MODULE
 module "codebuild" {
-  source = "./modules/codebuild"
+  source = "../../modules/codebuild"
 
   project_name = var.project_name
   environment  = var.environment
@@ -52,7 +71,7 @@ module "codebuild" {
 
 # CODEPIPELINE MODULE
 module "codepipeline" {
-  source = "./modules/codepipeline"
+  source = "../../modules/codepipeline"
 
   project_name = var.project_name
   environment  = var.environment
@@ -62,20 +81,7 @@ module "codepipeline" {
   branch     = var.branch
 
   codebuild_project_name = module.codebuild.project_name
-}
 
-# ALB MODULE
-module "alb" {
-  source = "./modules/alb"
-
-  project_name = var.project_name
-  environment  = var.environment
-
-  vpc_id     = var.vpc_id
-  subnet_ids = var.subnet_ids
-
-  container_port = var.container_port
-
-  # OPTIONAL SSL
-  #  certificate_arn = var.certificate_arn
+  github_oauth_token = var.github_oauth_token
+  webhook_secret     = var.webhook_secret
 }

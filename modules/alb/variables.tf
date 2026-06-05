@@ -1,45 +1,30 @@
-# Fungsi:
-# Nama Load Balancer
-
-variable "alb_name" {
-
-  description = "Application Load Balancer Name"
-  default = ""
-  type = string
+variable "project_name" {
+  description = "Nama project, digunakan sebagai prefix semua resource"
+  type        = string
 }
 
-# Fungsi:
-# Existing VPC ID
+variable "environment" {
+  description = "Environment label (dev/staging/prod)"
+  type        = string
+}
 
 variable "vpc_id" {
-
-  description = "VPC ID"
-
-  type = string
+  description = "VPC ID tempat ALB di-deploy"
+  type        = string
 }
-
-# Fungsi:
-# Existing Subnet IDs
 
 variable "subnet_ids" {
-
-  description = "Subnet IDs"
-
-  type = list(string)
+  description = "List Subnet ID untuk ALB (gunakan public subnet)"
+  type        = list(string)
 }
 
-variable "project_name" {
-
-  description = "Project Name"
-
-  type = string
-
-}
-variable "environment" {}
-
-variable "container_port" {}
-
-variable "certificate_arn" {
-  default = ""   
+variable "container_port" {
+  description = "Port container yang dijadikan target oleh ALB"
+  type        = number
 }
 
+# variable "certificate_arn" {
+#   description = "ARN ACM certificate untuk HTTPS listener (opsional)"
+#   type        = string
+#   default     = ""
+# }

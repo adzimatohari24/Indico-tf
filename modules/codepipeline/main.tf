@@ -1,11 +1,28 @@
 # Naming
 locals {
   name = "${var.project_name}-${var.environment}"
+
+  common_tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
 }
 
 # S3 BUCKET (artifact storage)
 resource "aws_s3_bucket" "artifact" {
-  bucket = "${local.name}-artifact-bucket"
+  bucket        = "${local.name}-artifact-bucket"
+  force_destroy = true
+
+  tags = local.common_tags
+}
+
+resource "aws_s3_bucket_versioning" "artifact" {
+  bucket = aws_s3_bucket.artifact.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
 }
 
 # IAM ROLE FOR CODEPIPELINE
@@ -22,9 +39,11 @@ resource "aws_iam_role" "codepipeline" {
       Action = "sts:AssumeRole"
     }]
   })
+
+  tags = local.common_tags
 }
 
-# Policy untuk akses pipeline
+# Policy untuk akses pipeline - scope dibatasi ke resource yang relevan
 resource "aws_iam_role_policy" "codepipeline" {
   role = aws_iam_role.codepipeline.id
 
@@ -34,9 +53,15 @@ resource "aws_iam_role_policy" "codepipeline" {
       {
         Effect = "Allow"
         Action = [
-          "s3:*"
+          "s3:GetObject",
+          "s3:GetObjectVersion",
+          "s3:PutObject",
+          "s3:GetBucketVersioning"
         ]
-        Resource = "*"
+        Resource = [
+          "arn:aws:s3:::${local.name}-artifact-bucket",
+          "arn:aws:s3:::${local.name}-artifact-bucket/*"
+        ]
       },
       {
         Effect = "Allow"
@@ -44,13 +69,13 @@ resource "aws_iam_role_policy" "codepipeline" {
           "codebuild:StartBuild",
           "codebuild:BatchGetBuilds"
         ]
-        Resource = "*"
+        Resource = "arn:aws:codebuild:*:*:project/${var.codebuild_project_name}"
       }
     ]
   })
 }
 
-# CODEPIPELINE RESOURCE 
+# CODEPIPELINE RESOURCE
 resource "aws_codepipeline" "this" {
   name     = "${local.name}-pipeline"
   role_arn = aws_iam_role.codepipeline.arn
@@ -74,12 +99,10 @@ resource "aws_codepipeline" "this" {
       output_artifacts = ["source_output"]
 
       configuration = {
-        Owner  = var.repo_owner
-        Repo   = var.repo_name
-        Branch = var.branch
-
-	#replace kalau pakai webhook
-        OAuthToken = "xxxxx"
+        Owner      = var.repo_owner
+        Repo       = var.repo_name
+        Branch     = var.branch
+        OAuthToken = var.github_oauth_token
       }
     }
   }
@@ -104,7 +127,7 @@ resource "aws_codepipeline" "this" {
     }
   }
 
-  # STAGE 3: DEPLOY (dummy deploy)
+  # STAGE 3: DEPLOY (artifact ke S3)
   stage {
     name = "Deploy"
 
@@ -112,7 +135,7 @@ resource "aws_codepipeline" "this" {
       name     = "Deploy"
       category = "Deploy"
       owner    = "AWS"
-      provider = "S3"  # simple deploy example
+      provider = "S3"
       version  = "1"
 
       input_artifacts = ["build_output"]
@@ -123,9 +146,11 @@ resource "aws_codepipeline" "this" {
       }
     }
   }
+
+  tags = local.common_tags
 }
 
-#Webhook
+# WEBHOOK
 resource "aws_codepipeline_webhook" "this" {
   name            = "${local.name}-webhook"
   authentication  = "GITHUB_HMAC"

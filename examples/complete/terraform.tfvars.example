@@ -1,0 +1,35 @@
+# Salin file ini ke terraform.tfvars dan sesuaikan nilainya
+# cp terraform.tfvars.example terraform.tfvars
+
+# GLOBAL
+aws_region   = "ap-southeast-1"
+project_name = "myapp"
+environment  = "dev"
+
+# NETWORK - wajib diisi sesuai AWS account kamu
+vpc_id     = "vpc-0abc12345"
+subnet_ids = ["subnet-0abc12345", "subnet-0def67890"]
+
+# CONTAINER
+container_name  = "myapp"
+container_image = "nginx:latest"
+container_port  = 80
+
+# ECS
+desired_count = 1
+
+# CODEBUILD
+repo_url     = "https://github.com/your-username/your-repo.git"
+buildspec    = "buildspec.yml"
+compute_type = "BUILD_GENERAL1_SMALL"
+image        = "aws/codebuild/amazonlinux2-x86_64-standard:5.0"
+env_vars     = { ENV = "dev" }
+
+# CODEPIPELINE
+repo_owner = "your-github-username"
+repo_name  = "your-repo-name"
+branch     = "main"
+
+# SENSITIVE - jangan commit nilai asli ke repository
+github_oauth_token = "ghp_xxxxxxxxxxxxxxxxxxxx"
+webhook_secret     = "your-random-secret-string"

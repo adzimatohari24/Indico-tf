@@ -1,4 +1,4 @@
-# GLOBAL SETTING
+# GLOBAL
 variable "aws_region" {
   description = "AWS region deployment"
   type        = string
@@ -17,17 +17,15 @@ variable "environment" {
   default     = "dev"
 }
 
-# NETWORK - wajib diisi, VPC dan Subnet harus sudah ada
+# NETWORK
 variable "vpc_id" {
-  description = "ID VPC yang sudah ada di AWS account kamu ⛔ GANTI INI"
+  description = "VPC ID yang sudah ada di AWS account kamu"
   type        = string
-  default     = "vpc-xxxxxxx"
 }
 
 variable "subnet_ids" {
-  description = "List Subnet ID yang sudah ada (gunakan public subnet) ⛔ GANTI INI"
+  description = "List Subnet ID yang sudah ada (gunakan public subnet)"
   type        = list(string)
-  default     = ["subnet-xxxxxx"]
 }
 
 # CONTAINER
@@ -44,17 +42,12 @@ variable "container_image" {
 }
 
 variable "container_port" {
-  description = "Port yang di-expose oleh container (1-65535)"
+  description = "Port yang di-expose oleh container"
   type        = number
   default     = 80
-
-  validation {
-    condition     = var.container_port > 0 && var.container_port <= 65535
-    error_message = "container_port harus bernilai antara 1 dan 65535."
-  }
 }
 
-# ECS SERVICE
+# ECS
 variable "desired_count" {
   description = "Jumlah ECS task yang ingin dijalankan"
   type        = number
@@ -65,7 +58,6 @@ variable "desired_count" {
 variable "repo_url" {
   description = "URL GitHub repository source code"
   type        = string
-  default     = "https://github.com/example/repo.git"
 }
 
 variable "buildspec" {
@@ -75,14 +67,9 @@ variable "buildspec" {
 }
 
 variable "compute_type" {
-  description = "Tipe compute CodeBuild (BUILD_GENERAL1_SMALL / MEDIUM / LARGE)"
+  description = "Tipe compute CodeBuild"
   type        = string
   default     = "BUILD_GENERAL1_SMALL"
-
-  validation {
-    condition     = contains(["BUILD_GENERAL1_SMALL", "BUILD_GENERAL1_MEDIUM", "BUILD_GENERAL1_LARGE"], var.compute_type)
-    error_message = "compute_type harus salah satu dari: BUILD_GENERAL1_SMALL, BUILD_GENERAL1_MEDIUM, BUILD_GENERAL1_LARGE."
-  }
 }
 
 variable "image" {
@@ -101,13 +88,11 @@ variable "env_vars" {
 variable "repo_owner" {
   description = "GitHub username atau organisasi pemilik repository"
   type        = string
-  default     = "github-username"
 }
 
 variable "repo_name" {
   description = "Nama repository GitHub"
   type        = string
-  default     = "repo-name"
 }
 
 variable "branch" {
@@ -117,22 +102,15 @@ variable "branch" {
 }
 
 variable "github_oauth_token" {
-  description = "GitHub OAuth token untuk akses repository. Ganti dengan token asli sebelum deploy ke production"
+  description = "GitHub OAuth token untuk akses repository"
   type        = string
   sensitive   = true
   default     = "dummy-token-replace-before-use"
 }
 
 variable "webhook_secret" {
-  description = "Secret token untuk validasi webhook dari GitHub. Ganti dengan nilai acak yang kuat sebelum deploy ke production"
+  description = "Secret token untuk validasi webhook dari GitHub"
   type        = string
   sensitive   = true
   default     = "dummy-webhook-secret-replace-before-use"
 }
-
-# OPTIONAL SSL
-# variable "certificate_arn" {
-#   description = "ARN ACM certificate untuk HTTPS listener (opsional)"
-#   type        = string
-#   default     = ""
-# }

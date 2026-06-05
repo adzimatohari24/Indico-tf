@@ -1,6 +1,12 @@
 # Naming
 locals {
   name = "${var.project_name}-${var.environment}"
+
+  common_tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
 }
 
 # SECURITY GROUP FOR ALB
@@ -31,14 +37,19 @@ resource "aws_security_group" "alb" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = local.common_tags
 }
 
 # APPLICATION LOAD BALANCER
 resource "aws_lb" "this" {
   name               = "${local.name}-alb"
   load_balancer_type = "application"
+  internal           = false # internet-facing
   subnets            = var.subnet_ids
   security_groups    = [aws_security_group.alb.id]
+
+  tags = local.common_tags
 }
 
 # TARGET GROUP (for ECS)
@@ -61,6 +72,8 @@ resource "aws_lb_target_group" "this" {
     healthy_threshold   = 2
     unhealthy_threshold = 2
   }
+
+  tags = local.common_tags
 }
 
 # HTTP listener (port 80)
@@ -73,4 +86,6 @@ resource "aws_lb_listener" "http" {
     type             = "forward"
     target_group_arn = aws_lb_target_group.this.arn
   }
+
+  tags = local.common_tags
 }

@@ -14,13 +14,29 @@ provider "aws" {
   region = var.aws_region
 }
 
-# ECS MODULE (existing)
+# ALB MODULE
+module "alb" {
+  source = "./modules/alb"
+
+  project_name = var.project_name
+  environment  = var.environment
+
+  vpc_id     = var.vpc_id
+  subnet_ids = var.subnet_ids
+
+  container_port = var.container_port
+
+  # OPTIONAL SSL
+  # certificate_arn = var.certificate_arn
+}
+
+# ECS MODULE
 module "ecs" {
   source = "./modules/ecs"
 
   project_name = var.project_name
   environment  = var.environment
-  aws_region   = var.aws_region  # fix: pass region agar awslogs-region sesuai
+  aws_region   = var.aws_region
 
   vpc_id     = var.vpc_id
   subnet_ids = var.subnet_ids
@@ -33,7 +49,7 @@ module "ecs" {
 
   target_group_arn = module.alb.target_group_arn
 
-  # fix: pastikan ALB (listener) sudah siap sebelum ECS service naik
+  # pastikan ALB (listener) sudah siap sebelum ECS service naik
   depends_on = [module.alb]
 }
 
@@ -65,20 +81,7 @@ module "codepipeline" {
   branch     = var.branch
 
   codebuild_project_name = module.codebuild.project_name
-}
 
-# ALB MODULE
-module "alb" {
-  source = "./modules/alb"
-
-  project_name = var.project_name
-  environment  = var.environment
-
-  vpc_id     = var.vpc_id
-  subnet_ids = var.subnet_ids
-
-  container_port = var.container_port
-
-  # OPTIONAL SSL
-  #  certificate_arn = var.certificate_arn
+  github_oauth_token = var.github_oauth_token
+  webhook_secret     = var.webhook_secret
 }

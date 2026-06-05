@@ -1,7 +1,9 @@
 output "pipeline_name" {
-  value = aws_codepipeline.this.name
+  description = "Nama CodePipeline yang dibuat"
+  value       = aws_codepipeline.this.name
 }
 
 output "pipeline_arn" {
-  value = aws_codepipeline.this.arn
+  description = "ARN CodePipeline yang dibuat"
+  value       = aws_codepipeline.this.arn
 }
