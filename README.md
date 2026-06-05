@@ -140,12 +140,7 @@ webhook_secret     = "your-random-secret-string"
 
 > **Penting:** Pastikan `terraform.tfvars` sudah masuk ke `.gitignore` karena berisi token sensitif.
 
-### 3. Test
-
-chmod +x /Users/fauzanadzimatohari/Documents/Kiro/Indico-tf/tf-check.sh
-./tf-check.sh
-
-### 4. Deploy
+### 3. Deploy
 
 terraform init
 terraform fmt
@@ -156,6 +151,27 @@ terraform apply
 # Result :
 
 ### 1. Terraform init
+root@KMS1:/home/helios/Indico-tf# terraform init
+Initializing modules...
+Initializing provider plugins found in the configuration...
+- Reusing previous version of hashicorp/aws from the dependency lock file
+- Using previously-installed hashicorp/aws v5.100.0
+
+Initializing the backend...
+ 
+
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+
+![alt text](image.png)
 ### 2. Terraform fmt
 ### 3. Terraform validate
 ### 4. Terraform plan
