@@ -142,11 +142,11 @@ webhook_secret     = "your-random-secret-string"
 
 ### 3. Deploy
 
-terraform init
-terraform fmt
-terraform validate
-terraform plan
-terraform apply
+- terraform init
+- terraform fmt
+- terraform validate
+- terraform plan
+- terraform apply
 
 # Result :
 
