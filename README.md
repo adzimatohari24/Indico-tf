@@ -157,7 +157,7 @@ webhook_secret     = "your-random-secret-string"
 ![alt text](image-1.png)
 
 ### 3. Terraform validate
-![alt text](image.png)
+![alt text](image-2.png)
 
 ### 4. Terraform plan
 root@KMS1:/home/helios/Indico-tf# terraform plan
